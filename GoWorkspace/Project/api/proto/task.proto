@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package task;
+
+option go_package = "/;proto";
+
+service TaskService {
+    rpc CreateTask(CreateTaskRequest) returns (Task);
+    rpc GetTask(GetTaskRequest) returns (Task);
+    rpc ListTasks(ListTasksRequest) returns (ListTasksResponse);
+    rpc CompleteTask(CompleteTaskRequest) returns (Task);
+    rpc DeleteTask(DeleteTaskRequest) returns (DeleteTaskResponse);
+}
+
+message Task{
+    int64 id = 1;
+    string name = 2;
+    bool complete = 3;
+}
+
+message CreateTaskRequest{
+    string name = 1;
+}
+
+message GetTaskRequest{
+    int64 id = 1;
+}
+
+message ListTasksRequest{}
+
+message ListTasksResponse{
+    repeated Task tasks = 1;
+}
+
+message CompleteTaskRequest{
+    int64 id = 1;
+}
+
+message DeleteTaskRequest{
+    int64 id = 1;
+}
+
+message DeleteTaskResponse{
+    int64 id = 1;
+}
