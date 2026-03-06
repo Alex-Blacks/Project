@@ -27,3 +27,16 @@ func (s *TaskServer) CreateTask(ctx context.Context, req *proto.CreateTaskReques
 		Complete: false,
 	}, nil
 }
+
+func (s *TaskServer) GetTask(ctx context.Context, req *proto.GetTaskRequest) (*proto.Task, error) {
+	item, err := s.service.Get(ctx, int(req.Id))
+	if err != nil {
+		return nil, err
+	}
+
+	return &proto.Task{
+		Id:       int64(item.ID),
+		Name:     item.Name,
+		Complete: false,
+	}, nil
+}
