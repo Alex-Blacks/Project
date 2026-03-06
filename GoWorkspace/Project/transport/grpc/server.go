@@ -22,9 +22,8 @@ func (s *TaskServer) CreateTask(ctx context.Context, req *proto.CreateTaskReques
 	}
 
 	return &proto.Task{
-		Id:       int64(item.ID),
-		Name:     item.Name,
-		Complete: false,
+		Id:   int64(item.ID),
+		Name: item.Name,
 	}, nil
 }
 
@@ -35,8 +34,18 @@ func (s *TaskServer) GetTask(ctx context.Context, req *proto.GetTaskRequest) (*p
 	}
 
 	return &proto.Task{
-		Id:       int64(item.ID),
-		Name:     item.Name,
-		Complete: false,
+		Id:   int64(item.ID),
+		Name: item.Name,
+	}, nil
+}
+
+func (s *TaskServer) DeleteTask(ctx context.Context, req *proto.DeleteTaskRequest) (*proto.DeleteTaskResponse, error) {
+	err := s.service.Delete(ctx, int(req.Id))
+	if err != nil {
+		return nil, err
+	}
+
+	return &proto.DeleteTaskResponse{
+		Id: req.Id,
 	}, nil
 }
