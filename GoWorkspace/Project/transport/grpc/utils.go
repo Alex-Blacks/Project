@@ -1,4 +1,4 @@
-package grpc
+package grpcPkg
 
 import (
 	"Goworkspace/Project/domain"

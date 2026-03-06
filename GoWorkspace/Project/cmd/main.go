@@ -3,23 +3,28 @@ package main
 import (
 	"context"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"Goworkspace/Project/api/proto"
 	"Goworkspace/Project/domain"
 	"Goworkspace/Project/storage"
+	grpcPkg "Goworkspace/Project/transport/grpc"
 	transport "Goworkspace/Project/transport/http"
+
+	"google.golang.org/grpc"
 )
 
 func main() {
 	st := storage.NewMemoryStorage()
 	service := domain.NewService(st)
 
+	// --- HTTP Server ---
 	r := transport.NewRouter(service)
-
 	srv := &http.Server{
 		Addr:         ":8080",
 		Handler:      r,
@@ -29,9 +34,27 @@ func main() {
 	}
 
 	go func() {
-		log.Println("[INFO]: server started on :8080")
+		log.Println("[INFO]: http server started on :8080")
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("[ERROR]: listen error: %v", err)
+		}
+	}()
+
+	// --- gRPC Server ---
+	grpcSrv := grpcPkg.NewTaskServer(service)
+	grpcServer := grpc.NewServer()
+	proto.RegisterTaskServiceServer(grpcServer, grpcSrv)
+
+	listener, err := net.Listen("tcp", ":50051")
+
+	if err != nil {
+		log.Fatalf("[ERROR]: gRPC listen error: %v", err)
+	}
+
+	go func() {
+		log.Println("[INFO]: gRPC server started on :50051")
+		if err := grpcServer.Serve(listener); err != nil {
+			log.Fatalf("[ERROR]: gRPC serve error: %v", err)
 		}
 	}()
 
