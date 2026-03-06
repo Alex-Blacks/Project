@@ -11,7 +11,7 @@ import (
 
 	"Goworkspace/Project/domain"
 	"Goworkspace/Project/storage"
-	"Goworkspace/Project/transport"
+	transport "Goworkspace/Project/transport/http"
 )
 
 func main() {
