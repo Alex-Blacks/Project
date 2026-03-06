@@ -18,7 +18,7 @@ func NewTaskServer(service *domain.Service) *TaskServer {
 func (s *TaskServer) CreateTask(ctx context.Context, req *proto.CreateTaskRequest) (*proto.Task, error) {
 	item, err := s.service.Create(ctx, req.Name)
 	if err != nil {
-		return nil, err
+		return nil, HelperErrorGRPC(err)
 	}
 
 	return &proto.Task{
@@ -30,7 +30,7 @@ func (s *TaskServer) CreateTask(ctx context.Context, req *proto.CreateTaskReques
 func (s *TaskServer) GetTask(ctx context.Context, req *proto.GetTaskRequest) (*proto.Task, error) {
 	item, err := s.service.Get(ctx, int(req.Id))
 	if err != nil {
-		return nil, err
+		return nil, HelperErrorGRPC(err, req.Id)
 	}
 
 	return &proto.Task{
@@ -42,7 +42,7 @@ func (s *TaskServer) GetTask(ctx context.Context, req *proto.GetTaskRequest) (*p
 func (s *TaskServer) DeleteTask(ctx context.Context, req *proto.DeleteTaskRequest) (*proto.DeleteTaskResponse, error) {
 	err := s.service.Delete(ctx, int(req.Id))
 	if err != nil {
-		return nil, err
+		return nil, HelperErrorGRPC(err, req.Id)
 	}
 
 	return &proto.DeleteTaskResponse{
