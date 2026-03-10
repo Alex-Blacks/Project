@@ -20,7 +20,8 @@ func HelperErrorGRPC(err error, id ...int64) error {
 
 func MapDomainErrorToCodes(err error) error {
 	switch err {
-	case domain.ErrInvalidValue:
+	case domain.ErrInvalidValue,
+		domain.ErrEmptyName:
 		return status.Error(codes.InvalidArgument, err.Error())
 	case domain.ErrNotFound:
 		return status.Error(codes.NotFound, err.Error())
