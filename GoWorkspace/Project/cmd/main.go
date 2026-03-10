@@ -24,19 +24,19 @@ func main() {
 	service := domain.NewService(st)
 
 	// --- HTTP Server ---
-	r := transport.NewRouter(service)
-	srv := &http.Server{
+	httpRouter := transport.NewRouter(service)
+	httpsrv := &http.Server{
 		Addr:         ":8080",
-		Handler:      r,
+		Handler:      httpRouter,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  60 * time.Second,
 	}
 
 	go func() {
-		log.Println("[INFO]: http server started on :8080")
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("[ERROR]: listen error: %v", err)
+		log.Println("[INFO]: HTTP server started on :8080")
+		if err := httpsrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("[ERROR]: HTTP listen error: %v", err)
 		}
 	}()
 
@@ -46,7 +46,6 @@ func main() {
 	proto.RegisterTaskServiceServer(grpcServer, grpcSrv)
 
 	listener, err := net.Listen("tcp", ":50051")
-
 	if err != nil {
 		log.Fatalf("[ERROR]: gRPC listen error: %v", err)
 	}
@@ -58,21 +57,21 @@ func main() {
 		}
 	}()
 
-	stop := make(chan os.Signal, 1)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
-	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
-	defer signal.Stop(stop)
-
-	<-stop
+	<-ctx.Done()
 
 	log.Println("[INFO]: shutting down server...")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if err := srv.Shutdown(ctx); err != nil {
-		log.Printf("[ERROR]: graceful shutdown failed: %v", err)
+	if err := httpsrv.Shutdown(shutdownCtx); err != nil {
+		log.Printf("[ERROR]: HTTP graceful shutdown failed: %v", err)
 	}
 
-	log.Println("[INFO]: server stopped")
+	grpcServer.GracefulStop()
+
+	log.Println("[INFO]: servers stopped")
 }
