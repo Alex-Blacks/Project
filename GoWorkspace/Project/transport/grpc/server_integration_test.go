@@ -95,30 +95,49 @@ func TestGetTask(t *testing.T) {
 			t.Fatalf("Expected name: %s, id: %d, got name: %s, id: %d", CreateResp.Name, CreateResp.Id, GetResp.Name, GetResp.Id)
 		}
 	})
-	t.Run("Get: Invalide ID", func(t *testing.T) {
+	t.Run("Get: Invalide value", func(t *testing.T) {
 		_, err := client.GetTask(context.Background(), &proto.GetTaskRequest{Id: 0})
 		if status.Code(err) != codes.InvalidArgument {
 			t.Fatalf("expected InvalidArgument, got %v", status.Code(err))
 		}
 	})
+	t.Run("Get: Not Found", func(t *testing.T) {
+		_, err := client.GetTask(context.Background(), &proto.GetTaskRequest{Id: 2})
+		if status.Code(err) != codes.NotFound {
+			t.Fatalf("expected NotFound, got %v", status.Code(err))
+		}
+	})
 }
-
-func TestInvalidValue(t *testing.T) {
+func TestDeleteTask(t *testing.T) {
 	conn := setupServer()
 	defer conn.Close()
-
 	client := proto.NewTaskServiceClient(conn)
 
-	_, err := client.GetTask(
-		context.Background(),
-		&proto.GetTaskRequest{
-			Id: -2,
-		},
-	)
-	if err == nil {
-		t.Fatal("Expected error")
-	}
-	if status.Code(err) != codes.InvalidArgument {
-		t.Fatalf("expected InvalidArgument, got %v", status.Code(err))
-	}
+	t.Run("Delete: success delete", func(t *testing.T) {
+		CreateResp, err := client.CreateTask(context.Background(), &proto.CreateTaskRequest{Name: "Alex"})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		DeleteResp, err := client.DeleteTask(context.Background(), &proto.DeleteTaskRequest{Id: 1})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if CreateResp.Id != DeleteResp.Id {
+			t.Fatalf("Unexpected error: %v", err)
+		}
+	})
+
+	t.Run("Delete: Invalide value", func(t *testing.T) {
+		_, err := client.DeleteTask(context.Background(), &proto.DeleteTaskRequest{Id: 0})
+		if status.Code(err) != codes.InvalidArgument {
+			t.Fatalf("expected InvalidArgument, got %v", status.Code(err))
+		}
+	})
+	t.Run("Delete: Not Found", func(t *testing.T) {
+		_, err := client.DeleteTask(context.Background(), &proto.DeleteTaskRequest{Id: 2})
+		if status.Code(err) != codes.NotFound {
+			t.Fatalf("expected NotFound, got %v", status.Code(err))
+		}
+	})
 }
