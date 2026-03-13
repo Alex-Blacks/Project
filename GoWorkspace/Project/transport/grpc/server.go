@@ -8,34 +8,38 @@ import (
 
 type TaskServer struct {
 	proto.UnimplementedTaskServiceServer
-	service *domain.Service
+	service domain.TaskService
 }
 
-func NewTaskServer(service *domain.Service) *TaskServer {
+func NewTaskServer(service domain.TaskService) *TaskServer {
 	return &TaskServer{service: service}
 }
 
-func (s *TaskServer) CreateTask(ctx context.Context, req *proto.CreateTaskRequest) (*proto.Task, error) {
+func (s *TaskServer) CreateTask(ctx context.Context, req *proto.CreateTaskRequest) (*proto.CreateTaskResponse, error) {
 	item, err := s.service.Create(ctx, req.Name)
 	if err != nil {
 		return nil, HelperErrorGRPC(err)
 	}
 
-	return &proto.Task{
-		Id:   int64(item.ID),
-		Name: item.Name,
+	return &proto.CreateTaskResponse{
+		Task: &proto.Task{
+			Id:   int64(item.ID),
+			Name: item.Name,
+		},
 	}, nil
 }
 
-func (s *TaskServer) GetTask(ctx context.Context, req *proto.GetTaskRequest) (*proto.Task, error) {
+func (s *TaskServer) GetTask(ctx context.Context, req *proto.GetTaskRequest) (*proto.GetTaskResponse, error) {
 	item, err := s.service.Get(ctx, int(req.Id))
 	if err != nil {
 		return nil, HelperErrorGRPC(err, req.Id)
 	}
 
-	return &proto.Task{
-		Id:   int64(item.ID),
-		Name: item.Name,
+	return &proto.GetTaskResponse{
+		Task: &proto.Task{
+			Id:   int64(item.ID),
+			Name: item.Name,
+		},
 	}, nil
 }
 

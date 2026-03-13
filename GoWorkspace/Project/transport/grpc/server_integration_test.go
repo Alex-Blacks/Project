@@ -58,8 +58,8 @@ func TestCreateTask(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		if resp.Name != "Alex" && resp.Id != 1 {
-			t.Fatalf("Expected name: Alex, id: 1, got name: %s, id: %d", resp.Name, resp.Id)
+		if resp.Task.Name != "Alex" && resp.Task.Id != 1 {
+			t.Fatalf("Expected name: Alex, id: 1, got name: %s, id: %d", resp.Task.Name, resp.Task.Id)
 		}
 	})
 	t.Run("Create: empty name", func(t *testing.T) {
@@ -91,8 +91,8 @@ func TestGetTask(t *testing.T) {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		if GetResp.Name != CreateResp.Name && GetResp.Id != CreateResp.Id {
-			t.Fatalf("Expected name: %s, id: %d, got name: %s, id: %d", CreateResp.Name, CreateResp.Id, GetResp.Name, GetResp.Id)
+		if GetResp.Task.Name != CreateResp.Task.Name && GetResp.Task.Id != CreateResp.Task.Id {
+			t.Fatalf("Expected name: %s, id: %d, got name: %s, id: %d", CreateResp.Task.Name, CreateResp.Task.Id, GetResp.Task.Name, GetResp.Task.Id)
 		}
 	})
 	t.Run("Get: Invalide value", func(t *testing.T) {
@@ -123,7 +123,7 @@ func TestDeleteTask(t *testing.T) {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		if CreateResp.Id != DeleteResp.Id {
+		if CreateResp.Task.Id != DeleteResp.Id {
 			t.Fatalf("Unexpected error: %v", err)
 		}
 	})

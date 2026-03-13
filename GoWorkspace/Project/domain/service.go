@@ -9,6 +9,8 @@ type Service struct {
 	storage Storage
 }
 
+var _ TaskService = (*Service)(nil)
+
 func NewService(st Storage) *Service {
 	return &Service{storage: st}
 }
