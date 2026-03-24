@@ -1,11 +1,11 @@
-package domain_test
+package service_test
 
 import (
+	"Goworkspace/internal/domain"
+	"Goworkspace/internal/service"
 	"context"
 	"errors"
 	"testing"
-
-	"Goworkspace/Project/domain"
 )
 
 type MockStorage struct {
@@ -29,7 +29,7 @@ func (m *MockStorage) DeleteItem(ctx context.Context, id int) error {
 func TestService_Create(t *testing.T) {
 	t.Run("Empty name returns ErrEmptyName", func(t *testing.T) {
 		mock := &MockStorage{}
-		svc := domain.NewService(mock)
+		svc := service.NewService(mock)
 
 		_, err := svc.Create(context.Background(), "")
 		if !errors.Is(err, domain.ErrEmptyName) {
@@ -42,7 +42,7 @@ func TestService_Create(t *testing.T) {
 
 	t.Run("Success returns item", func(t *testing.T) {
 		mock := &MockStorage{}
-		svc := domain.NewService(mock)
+		svc := service.NewService(mock)
 
 		item, err := svc.Create(context.Background(), "Alex")
 		if err != nil {
@@ -58,7 +58,7 @@ func TestService_Create(t *testing.T) {
 
 	t.Run("Storage error returns ErrInternal", func(t *testing.T) {
 		mock := &MockStorage{forcedError: errors.New("db fail")}
-		svc := domain.NewService(mock)
+		svc := service.NewService(mock)
 
 		_, err := svc.Create(context.Background(), "Alex")
 		if !errors.Is(err, domain.ErrInternal) {
@@ -68,7 +68,7 @@ func TestService_Create(t *testing.T) {
 
 	t.Run("Context canceled returns context.Canceled", func(t *testing.T) {
 		mock := &MockStorage{forcedError: context.Canceled}
-		svc := domain.NewService(mock)
+		svc := service.NewService(mock)
 
 		_, err := svc.Create(context.Background(), "Alex")
 		if !errors.Is(err, context.Canceled) {
@@ -78,7 +78,7 @@ func TestService_Create(t *testing.T) {
 
 	t.Run("Context timeout returns context.DeadlineExceeded", func(t *testing.T) {
 		mock := &MockStorage{forcedError: context.DeadlineExceeded}
-		svc := domain.NewService(mock)
+		svc := service.NewService(mock)
 
 		_, err := svc.Create(context.Background(), "Alex")
 		if !errors.Is(err, context.DeadlineExceeded) {
@@ -90,7 +90,7 @@ func TestService_Create(t *testing.T) {
 func TestService_Get(t *testing.T) {
 	t.Run("Zero ID returns ErrInvalidValue", func(t *testing.T) {
 		mock := &MockStorage{}
-		service := domain.NewService(mock)
+		service := service.NewService(mock)
 
 		_, err := service.Get(context.Background(), 0)
 		if !errors.Is(err, domain.ErrInvalidValue) {
@@ -100,7 +100,7 @@ func TestService_Get(t *testing.T) {
 
 	t.Run("Negative ID returns ErrInvalidValue", func(t *testing.T) {
 		mock := &MockStorage{}
-		service := domain.NewService(mock)
+		service := service.NewService(mock)
 
 		_, err := service.Get(context.Background(), -1)
 		if !errors.Is(err, domain.ErrInvalidValue) {
@@ -110,7 +110,7 @@ func TestService_Get(t *testing.T) {
 
 	t.Run("Success returns item", func(t *testing.T) {
 		mock := &MockStorage{}
-		service := domain.NewService(mock)
+		service := service.NewService(mock)
 
 		item, err := service.Get(context.Background(), 1)
 		if err != nil {
@@ -123,7 +123,7 @@ func TestService_Get(t *testing.T) {
 
 	t.Run("Storage error returns ErrNotFound", func(t *testing.T) {
 		mock := &MockStorage{forcedError: domain.ErrNotFound}
-		service := domain.NewService(mock)
+		service := service.NewService(mock)
 
 		_, err := service.Get(context.Background(), 1)
 		if !errors.Is(err, domain.ErrNotFound) {
@@ -133,7 +133,7 @@ func TestService_Get(t *testing.T) {
 
 	t.Run("Storage error returns ErrInternal", func(t *testing.T) {
 		mock := &MockStorage{forcedError: errors.New("DB error")}
-		service := domain.NewService(mock)
+		service := service.NewService(mock)
 
 		_, err := service.Get(context.Background(), 1)
 		if !errors.Is(err, domain.ErrInternal) {
@@ -143,7 +143,7 @@ func TestService_Get(t *testing.T) {
 
 	t.Run("Context canceled returns context.Canceled", func(t *testing.T) {
 		mock := &MockStorage{forcedError: context.Canceled}
-		svc := domain.NewService(mock)
+		svc := service.NewService(mock)
 
 		_, err := svc.Get(context.Background(), 1)
 		if !errors.Is(err, context.Canceled) {
@@ -153,7 +153,7 @@ func TestService_Get(t *testing.T) {
 
 	t.Run("Context timeout returns context.DeadlineExceeded", func(t *testing.T) {
 		mock := &MockStorage{forcedError: context.DeadlineExceeded}
-		svc := domain.NewService(mock)
+		svc := service.NewService(mock)
 
 		_, err := svc.Get(context.Background(), 1)
 		if !errors.Is(err, context.DeadlineExceeded) {
@@ -165,7 +165,7 @@ func TestService_Get(t *testing.T) {
 func TestService_Delete(t *testing.T) {
 	t.Run("Zero ID returns ErrInvalidValue", func(t *testing.T) {
 		mock := &MockStorage{}
-		service := domain.NewService(mock)
+		service := service.NewService(mock)
 
 		err := service.Delete(context.Background(), 0)
 		if !errors.Is(err, domain.ErrInvalidValue) {
@@ -175,7 +175,7 @@ func TestService_Delete(t *testing.T) {
 
 	t.Run("Negative ID returns ErrInvalidValue", func(t *testing.T) {
 		mock := &MockStorage{}
-		service := domain.NewService(mock)
+		service := service.NewService(mock)
 
 		err := service.Delete(context.Background(), -1)
 		if !errors.Is(err, domain.ErrInvalidValue) {
@@ -185,7 +185,7 @@ func TestService_Delete(t *testing.T) {
 
 	t.Run("Storage error returns ErrNotFound", func(t *testing.T) {
 		mock := &MockStorage{forcedError: domain.ErrNotFound}
-		service := domain.NewService(mock)
+		service := service.NewService(mock)
 
 		err := service.Delete(context.Background(), 1)
 		if !errors.Is(err, domain.ErrNotFound) {
@@ -195,7 +195,7 @@ func TestService_Delete(t *testing.T) {
 
 	t.Run("Storage error returns ErrInternal", func(t *testing.T) {
 		mock := &MockStorage{forcedError: errors.New("DB error")}
-		service := domain.NewService(mock)
+		service := service.NewService(mock)
 
 		err := service.Delete(context.Background(), 1)
 		if !errors.Is(err, domain.ErrInternal) {
@@ -205,7 +205,7 @@ func TestService_Delete(t *testing.T) {
 
 	t.Run("Context canceled returns context.Canceled", func(t *testing.T) {
 		mock := &MockStorage{forcedError: context.Canceled}
-		service := domain.NewService(mock)
+		service := service.NewService(mock)
 
 		err := service.Delete(context.Background(), 1)
 		if !errors.Is(err, context.Canceled) {
@@ -215,7 +215,7 @@ func TestService_Delete(t *testing.T) {
 
 	t.Run("Context timeout returns context.DeadlineExceeded", func(t *testing.T) {
 		mock := &MockStorage{forcedError: context.DeadlineExceeded}
-		service := domain.NewService(mock)
+		service := service.NewService(mock)
 
 		err := service.Delete(context.Background(), 1)
 		if !errors.Is(err, context.DeadlineExceeded) {

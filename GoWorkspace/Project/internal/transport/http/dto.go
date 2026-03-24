@@ -1,8 +1,6 @@
 package transport
 
-import (
-	"Goworkspace/Project/domain"
-)
+import "Goworkspace/internal/domain"
 
 type CreateRequest struct {
 	Name string `json:"name"`

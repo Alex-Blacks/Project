@@ -1,4 +1,4 @@
-package middleware
+package middlewareHTTP
 
 import (
 	"encoding/json"

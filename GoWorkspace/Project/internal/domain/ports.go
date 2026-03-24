@@ -4,6 +4,11 @@ import (
 	"context"
 )
 
+type Item struct {
+	ID   int
+	Name string
+}
+
 // Интерфейс для storage
 type Storage interface {
 	CreateItem(ctx context.Context, item Item) (Item, error) // Создать элемент

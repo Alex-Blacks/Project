@@ -1,8 +1,8 @@
 package storage_test
 
 import (
-	"Goworkspace/Project/domain"
-	"Goworkspace/Project/storage"
+	"Goworkspace/internal/domain"
+	"Goworkspace/internal/storage"
 	"context"
 	"errors"
 	"fmt"

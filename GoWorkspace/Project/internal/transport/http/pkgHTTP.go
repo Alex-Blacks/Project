@@ -1,7 +1,7 @@
 package transport
 
 import (
-	"Goworkspace/Project/domain"
+	"Goworkspace/internal/domain"
 	"encoding/json"
 	"errors"
 	"log"

@@ -1,8 +1,8 @@
-package grpcPkg
+package grpcServer
 
 import (
-	"Goworkspace/Project/api/proto"
-	"Goworkspace/Project/domain"
+	"Goworkspace/api/proto"
+	"Goworkspace/internal/domain"
 	"context"
 )
 

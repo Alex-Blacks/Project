@@ -12,14 +12,6 @@ type contextKey string
 
 const requestIDKey contextKey = "request-id"
 
-func GetRequestID(ctx context.Context) string {
-	id, ok := ctx.Value(requestIDKey).(string)
-	if !ok {
-		return ""
-	}
-	return id
-}
-
 func RequestIDInteceptor(
 	ctx context.Context,
 	req interface{},
@@ -41,4 +33,12 @@ func RequestIDInteceptor(
 	ctx = context.WithValue(ctx, requestIDKey, requestID)
 
 	return handler(ctx, req)
+}
+
+func GetRequestID(ctx context.Context) string {
+	id, ok := ctx.Value(requestIDKey).(string)
+	if !ok {
+		return ""
+	}
+	return id
 }

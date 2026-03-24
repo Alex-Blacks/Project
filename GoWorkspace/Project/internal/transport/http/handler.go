@@ -1,7 +1,8 @@
 package transport
 
 import (
-	"Goworkspace/Project/domain"
+	"Goworkspace/internal/domain"
+	"Goworkspace/internal/service"
 	"log"
 	"net/http"
 	"strconv"
@@ -9,7 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func PostHandler(src *domain.Service) http.HandlerFunc {
+func PostHandler(src *service.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var req CreateRequest
 
@@ -31,7 +32,7 @@ func PostHandler(src *domain.Service) http.HandlerFunc {
 	})
 }
 
-func GetHandler(src *domain.Service) http.HandlerFunc {
+func GetHandler(src *service.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		strID := chi.URLParam(r, "id")
 		reqID, err := strconv.Atoi(strID)
@@ -53,7 +54,7 @@ func GetHandler(src *domain.Service) http.HandlerFunc {
 	})
 }
 
-func DeleteHandler(src *domain.Service) http.HandlerFunc {
+func DeleteHandler(src *service.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		strID := chi.URLParam(r, "id")
 		reqID, err := strconv.Atoi(strID)

@@ -1,10 +1,11 @@
-package grpcPkg_test
+package grpcServer_test
 
 import (
-	"Goworkspace/Project/api/proto"
-	"Goworkspace/Project/domain"
-	"Goworkspace/Project/storage"
-	grpcPkg "Goworkspace/Project/transport/grpc"
+	"Goworkspace/api/proto"
+	"Goworkspace/internal/service"
+	"Goworkspace/internal/storage"
+	grpcPkg "Goworkspace/internal/transport/grpc"
+
 	"context"
 	"net"
 	"testing"
@@ -24,7 +25,7 @@ func setupServer() *grpc.ClientConn {
 	lis := bufconn.Listen(bufSize)
 
 	st := storage.NewMemoryStorage()
-	service := domain.NewService(st)
+	service := service.NewService(st)
 
 	server := grpc.NewServer()
 	taskServer := grpcPkg.NewTaskServer(service)

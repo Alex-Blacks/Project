@@ -1,6 +1,7 @@
 package inteceptor
 
 import (
+	"Goworkspace/internal/logging"
 	"context"
 	"log"
 	"log/slog"
@@ -9,11 +10,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-type loggerKeyType struct{}
-
-var loggerKey = loggerKeyType{}
-
-func loggingInterception(logger *slog.Logger) grpc.UnaryServerInterceptor {
+func LoggingInterceptor(baseLogger *slog.Logger) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req interface{},
@@ -23,9 +20,13 @@ func loggingInterception(logger *slog.Logger) grpc.UnaryServerInterceptor {
 		start := time.Now()
 
 		requestID := GetRequestID(ctx)
-		reqLogger := logger.With("request-id", requestID)
+		reqLogger := baseLogger.With(
+			"request-id", requestID,
+			"method", info.FullMethod,
+		)
 
-		ctx = context.WithValue(ctx, loggerKey, reqLogger)
+		ctx = logging.WithLogger(ctx, reqLogger)
+
 		log.Printf("[INFO]: gRPC: request started id=%s, method=%s", requestID, info.FullMethod)
 
 		resp, err := handler(ctx, req)

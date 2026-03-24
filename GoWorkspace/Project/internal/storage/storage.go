@@ -1,10 +1,9 @@
 package storage
 
 import (
+	"Goworkspace/internal/domain"
 	"context"
 	"sync"
-
-	"Goworkspace/Project/domain"
 )
 
 type MemoryStorage struct {

@@ -1,6 +1,10 @@
 package main
 
 import (
+	"Goworkspace/api/proto"
+	"Goworkspace/internal/service"
+	"Goworkspace/internal/storage"
+	transport "Goworkspace/internal/transport/http"
 	"context"
 	"log"
 	"net"
@@ -10,18 +14,12 @@ import (
 	"syscall"
 	"time"
 
-	"Goworkspace/Project/api/proto"
-	"Goworkspace/Project/domain"
-	"Goworkspace/Project/storage"
-	grpcPkg "Goworkspace/Project/transport/grpc"
-	transport "Goworkspace/Project/transport/http"
-
 	"google.golang.org/grpc"
 )
 
 func main() {
 	st := storage.NewMemoryStorage()
-	service := domain.NewService(st)
+	service := service.NewService(st)
 
 	// --- HTTP Server ---
 	httpRouter := transport.NewRouter(service)

@@ -1,6 +1,7 @@
-package middleware
+package middlewareHTTP_test
 
 import (
+	middlewareHTTP "Goworkspace/internal/middleware/http"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,7 +11,7 @@ import (
 func TestRecovery_middleware(t *testing.T) {
 	handlerPanic := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { panic("Boom") })
 
-	recoveryHandler := RecoveryMiddleware(handlerPanic)
+	recoveryHandler := middlewareHTTP.RecoveryMiddleware(handlerPanic)
 
 	req := httptest.NewRequest(http.MethodGet, "/panic", nil)
 	rec := httptest.NewRecorder()
@@ -30,7 +31,7 @@ func TestRecovery_middleware(t *testing.T) {
 func TestTimeout_middleware(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { <-r.Context().Done() })
 
-	timeoutHandler := TimeoutMiddleware(1 * time.Second)(handler)
+	timeoutHandler := middlewareHTTP.TimeoutMiddleware(1 * time.Second)(handler)
 
 	req := httptest.NewRequest(http.MethodGet, "/slow", nil)
 	rec := httptest.NewRecorder()

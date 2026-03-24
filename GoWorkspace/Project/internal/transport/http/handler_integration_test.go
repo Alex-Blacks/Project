@@ -1,8 +1,8 @@
 package transport
 
 import (
-	"Goworkspace/Project/domain"
-	"Goworkspace/Project/storage"
+	"Goworkspace/internal/service"
+	"Goworkspace/internal/storage"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -14,7 +14,7 @@ import (
 
 func SetupTestRout() http.Handler {
 	st := storage.NewMemoryStorage()
-	svc := domain.NewService(st)
+	svc := service.NewService(st)
 	return NewRouter(svc)
 }
 

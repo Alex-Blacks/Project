@@ -1,14 +1,14 @@
 package transport
 
 import (
-	"Goworkspace/Project/domain"
-	"Goworkspace/Project/middleware"
+	middleware "Goworkspace/internal/middleware/http"
+	"Goworkspace/internal/service"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 )
 
-func NewRouter(service *domain.Service) *chi.Mux {
+func NewRouter(service *service.Service) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RecoveryMiddleware)

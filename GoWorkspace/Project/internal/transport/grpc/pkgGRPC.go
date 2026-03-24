@@ -1,11 +1,10 @@
-package grpcPkg
+package grpcServer
 
 import (
+	"Goworkspace/api/proto"
+	"Goworkspace/internal/domain"
 	"context"
 	"log"
-
-	"Goworkspace/Project/api/proto"
-	"Goworkspace/Project/domain"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
