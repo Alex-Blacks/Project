@@ -11,6 +11,6 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		start := time.Now()
 		next.ServeHTTP(w, r)
 		duration := time.Since(start)
-		log.Printf("[INFO]: %s %s duration: %s", r.Method, r.URL.Path, duration)
+		log.Printf("[INFO]: HTTP: method=%s, path=%s, duration=%s", r.Method, r.URL.Path, duration)
 	})
 }

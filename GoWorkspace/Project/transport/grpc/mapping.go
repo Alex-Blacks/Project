@@ -1,9 +1,11 @@
 package grpcPkg
 
 import (
-	"Goworkspace/Project/domain"
 	"context"
 	"log"
+
+	"Goworkspace/Project/api/proto"
+	"Goworkspace/Project/domain"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -31,5 +33,12 @@ func MapDomainErrorToCodes(err error) error {
 		return status.Error(codes.DeadlineExceeded, err.Error())
 	default:
 		return status.Error(codes.Internal, err.Error())
+	}
+}
+
+func itemToProto(item domain.Item) *proto.Task {
+	return &proto.Task{
+		Id:   int64(item.ID),
+		Name: item.Name,
 	}
 }

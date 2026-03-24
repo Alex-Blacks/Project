@@ -22,10 +22,7 @@ func (s *TaskServer) CreateTask(ctx context.Context, req *proto.CreateTaskReques
 	}
 
 	return &proto.CreateTaskResponse{
-		Task: &proto.Task{
-			Id:   int64(item.ID),
-			Name: item.Name,
-		},
+		Task: itemToProto(item),
 	}, nil
 }
 
@@ -36,10 +33,7 @@ func (s *TaskServer) GetTask(ctx context.Context, req *proto.GetTaskRequest) (*p
 	}
 
 	return &proto.GetTaskResponse{
-		Task: &proto.Task{
-			Id:   int64(item.ID),
-			Name: item.Name,
-		},
+		Task: itemToProto(item),
 	}, nil
 }
 
