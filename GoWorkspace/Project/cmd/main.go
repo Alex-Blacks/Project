@@ -4,6 +4,7 @@ import (
 	"Goworkspace/api/proto"
 	"Goworkspace/internal/service"
 	"Goworkspace/internal/storage"
+	grpcServer "Goworkspace/internal/transport/grpc"
 	transport "Goworkspace/internal/transport/http"
 	"context"
 	"log"
@@ -39,7 +40,7 @@ func main() {
 	}()
 
 	// --- gRPC Server ---
-	grpcSrv := grpcPkg.NewTaskServer(service)
+	grpcSrv := grpcServer.NewTaskServer(service)
 	grpcServer := grpc.NewServer()
 	proto.RegisterTaskServiceServer(grpcServer, grpcSrv)
 
