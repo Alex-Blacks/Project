@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// --- Пишем функцию по созданию логирования ---
+// LoggingInterceptor логирует gRPC запросы: старт, успешное завершение, ошибки и длительность
 func LoggingInterceptor(baseLogger *slog.Logger) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
@@ -18,32 +18,31 @@ func LoggingInterceptor(baseLogger *slog.Logger) grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		// --- Получем requestID из контекста и проверяем на пустоту ---
+
+		// Получаем requestID из context; если нет, используем "unknown"
 		requestID := GetRequestID(ctx)
 		if requestID == "" {
 			requestID = "unknown"
 		}
 
-		// --- Добавляем requestID и метод в логи ---
+		// Создаём logger с requestID и gRPC методом для структурированного логирования
 		logger := baseLogger.With(
 			"request_id", requestID,
 			"method", info.FullMethod,
 		)
 
-		// --- Создаём новый контекст с логированием + request id ---
+		// Добавляем logger в context, чтобы сервисы могли его использовать
 		ctx = logging.WithLogger(ctx, logger)
 
-		// --- Стартуем таймер запроса ---
+		// Засекаем время обработки и логируем старт запроса
 		start := time.Now()
 		logger.Info("gRPC: Request started")
 
-		// --- Запускаем handler ---
+		// Вызываем следующий handler с обновлённым context
 		resp, err := handler(ctx, req)
 
-		// --- Закрываем таймер и записываем длительность обработки ---
+		// Логируем длительность запроса; если есть ошибка — логируем с кодом ошибки, иначе — логируем успех
 		duration := time.Since(start)
-
-		// --- Проверяем на ошибки ---
 		if err != nil {
 			logger.Error("gRPC: request error",
 				"duration", duration,
@@ -56,6 +55,7 @@ func LoggingInterceptor(baseLogger *slog.Logger) grpc.UnaryServerInterceptor {
 		logger.Info("gRPC: request success",
 			"duration", duration,
 		)
+
 		return resp, nil
 	}
 }

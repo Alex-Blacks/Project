@@ -8,13 +8,14 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-// --- Создаём ключ для контекста ---
+// contextKey — приватный тип для ключей context, чтобы избежать конфликтов
 type contextKey string
 
-// --- Делаем его константой чтобы нельзя было изменить ---
+// requestIDKey — ключ для хранения request ID в context
 const requestIDKey contextKey = "request-id"
 
-// --- Пишем функцию по созданию ID для запросов ---
+// RequestIDInterceptor извлекает X-Request-ID из входящего запроса, генерирует новый, если отсутствует,
+// и кладёт его в context для дальнейшего использования в сервисе
 func RequestIDInterceptor() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
@@ -24,25 +25,23 @@ func RequestIDInterceptor() grpc.UnaryServerInterceptor {
 	) (interface{}, error) {
 		var requestID string
 
-		// --- Вытаскиваем requestID из метадаты ---
+		// Достаём X-Request-ID из метадаты gRPC; если нет — генерируем новый UUID
 		if md, ok := metadata.FromIncomingContext(ctx); ok {
 			if ids := md.Get("x-request-id"); len(ids) > 0 {
 				requestID = ids[0]
 			}
 		}
-
-		// --- Если requestID пустой, то генерируем новый ---
 		if requestID == "" {
 			requestID = uuid.NewString()
 		}
 
-		// --- Кладём новый requestID в context ---
+		// Создаём новый context с requestID и вызываем handler с этим context
 		ctx = context.WithValue(ctx, requestIDKey, requestID)
 		return handler(ctx, req)
 	}
 }
 
-// --- Пишем функцию для получения ID из context ---
+// GetRequestID возвращает request ID из context или пустую строку
 func GetRequestID(ctx context.Context) string {
 	if id, ok := ctx.Value(requestIDKey).(string); ok {
 		return id
