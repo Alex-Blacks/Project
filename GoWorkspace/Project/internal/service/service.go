@@ -10,11 +10,11 @@ type Service struct {
 	storage domain.Storage
 }
 
-var _ domain.TaskService = (*Service)(nil)
-
 func NewService(st domain.Storage) *Service {
 	return &Service{storage: st}
 }
+
+var _ domain.TaskService = (*Service)(nil)
 
 func (s *Service) Create(ctx context.Context, name string) (domain.Item, error) {
 	if name == "" {

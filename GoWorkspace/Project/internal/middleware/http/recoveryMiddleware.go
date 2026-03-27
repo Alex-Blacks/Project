@@ -4,6 +4,7 @@ import (
 	"Goworkspace/internal/logging"
 	"encoding/json"
 	"net/http"
+	"runtime/debug"
 )
 
 // RecoveryMiddleware защищает сервер от паники в обработчиках.
@@ -21,6 +22,7 @@ func RecoveryMiddleware(next http.Handler) http.Handler {
 				// Логируем panic с подробностями
 				logger.Error("HTTP:[RECOVERY]: panic",
 					"recovered", rec,
+					"stack", string(debug.Stack()),
 				)
 
 				// Формируем ответ клиенту с кодом 500

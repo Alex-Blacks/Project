@@ -12,7 +12,7 @@ import (
 type contextKey string
 
 // requestIDKey — ключ для хранения request ID в context
-const requestIDKey contextKey = "request-id"
+const requestIDKey contextKey = "request_id"
 
 // RequestIDInterceptor извлекает X-Request-ID из входящего запроса, генерирует новый, если отсутствует,
 // и кладёт его в context для дальнейшего использования в сервисе

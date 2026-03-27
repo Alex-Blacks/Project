@@ -12,12 +12,19 @@ func TimeoutMiddleware(timeout time.Duration) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-			// Создаём context с таймаутом
-			ctx, cancel := context.WithTimeout(r.Context(), timeout)
-			defer cancel() // гарантируем освобождение ресурсов
+			if deadline, ok := r.Context().Deadline(); ok {
+				if time.Until(deadline) <= timeout {
+					next.ServeHTTP(w, r)
+				} else {
+					// Создаём context с таймаутом
+					ctx, cancel := context.WithTimeout(r.Context(), timeout)
+					defer cancel() // гарантируем освобождение ресурсов
 
-			// Передаём новый context в handler
-			next.ServeHTTP(w, r.WithContext(ctx))
+					// Передаём новый context в handler
+					next.ServeHTTP(w, r.WithContext(ctx))
+				}
+			}
+
 		})
 	}
 }
