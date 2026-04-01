@@ -1,20 +1,26 @@
-package grpcServer
+package grpcTransport
 
 import (
 	"Goworkspace/api/proto"
 	"Goworkspace/internal/domain"
+	"Goworkspace/internal/logging"
 	"context"
-	"log"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-func HelperErrorGRPC(err error, id ...int64) error {
+func HelperErrorGRPC(ctx context.Context, err error, id ...int64) error {
+	logger := logging.LoggerFromContext(ctx)
 	if len(id) > 0 {
-		log.Printf("[ERROR]: gRPC: id=%d: %v", id[0], err)
+		logger.Error("gRPC:",
+			"id", id[0],
+			"error", err,
+		)
 	} else {
-		log.Printf("[ERROR]: gRPC: %v", err)
+		logger.Error("gRPC:",
+			"error", err,
+		)
 	}
 	return MapDomainErrorToCodes(err)
 }

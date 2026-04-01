@@ -1,7 +1,8 @@
-package service
+package auth
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -22,6 +23,10 @@ func (j *JWTValidation) Parse(tokenStr string) (string, error) {
 
 	// парсим токен и одновременно проверяем подпись
 	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (any, error) {
+		// проверяем алгоритм подписи
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
 		// возвращаем секретный ключ для проверки подписи
 		return j.secret, nil
 	})
@@ -53,25 +58,16 @@ func (j *JWTValidation) Parse(tokenStr string) (string, error) {
 	return userID, nil
 }
 
-// authService — реализация AuthService
-// использует JWTValidation для проверки токена
-type authService struct {
-	jwt *JWTValidation
-}
+func (j *JWTValidation) Generate(userID string) (string, error) {
+	claims := jwt.MapClaims{
+		"user_id": userID,
+		"exp":     time.Now().Add(time.Hour).Unix(),
+	}
 
-// AuthService — интерфейс (контракт)
-// нужен для абстракции и подмены реализации (например, в тестах)
-type AuthService interface {
-	Validate(token string) (string, error)
-}
-
-// Validate — делегирует проверку токена в JWT слой
-func (a *authService) Validate(token string) (string, error) {
-	return a.jwt.Parse(token)
-}
-
-// конструктор сервиса авторизации
-// возвращает интерфейс, а не конкретную реализацию (скрываем детали)
-func NewAuthService(jwt *JWTValidation) AuthService {
-	return &authService{jwt: jwt}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err := token.SignedString(j.secret)
+	if err != nil {
+		return "", fmt.Errorf("failed to sign token: %w", err)
+	}
+	return signedToken, nil
 }

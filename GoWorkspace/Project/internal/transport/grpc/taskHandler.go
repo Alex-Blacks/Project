@@ -1,4 +1,4 @@
-package grpcServer
+package grpcTransport
 
 import (
 	"Goworkspace/api/proto"
@@ -18,7 +18,7 @@ func NewTaskServer(service domain.TaskService) *TaskServer {
 func (s *TaskServer) CreateTask(ctx context.Context, req *proto.CreateTaskRequest) (*proto.CreateTaskResponse, error) {
 	item, err := s.service.Create(ctx, req.Name)
 	if err != nil {
-		return nil, HelperErrorGRPC(err)
+		return nil, HelperErrorGRPC(ctx, err)
 	}
 
 	return &proto.CreateTaskResponse{
@@ -29,7 +29,7 @@ func (s *TaskServer) CreateTask(ctx context.Context, req *proto.CreateTaskReques
 func (s *TaskServer) GetTask(ctx context.Context, req *proto.GetTaskRequest) (*proto.GetTaskResponse, error) {
 	item, err := s.service.Get(ctx, int(req.Id))
 	if err != nil {
-		return nil, HelperErrorGRPC(err, req.Id)
+		return nil, HelperErrorGRPC(ctx, err, req.Id)
 	}
 
 	return &proto.GetTaskResponse{
@@ -40,7 +40,7 @@ func (s *TaskServer) GetTask(ctx context.Context, req *proto.GetTaskRequest) (*p
 func (s *TaskServer) DeleteTask(ctx context.Context, req *proto.DeleteTaskRequest) (*proto.DeleteTaskResponse, error) {
 	err := s.service.Delete(ctx, int(req.Id))
 	if err != nil {
-		return nil, HelperErrorGRPC(err, req.Id)
+		return nil, HelperErrorGRPC(ctx, err, req.Id)
 	}
 
 	return &proto.DeleteTaskResponse{

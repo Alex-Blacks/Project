@@ -2,12 +2,14 @@ package main
 
 import (
 	"Goworkspace/api/proto"
+	"Goworkspace/internal/logging"
+	grpcMiddleware "Goworkspace/internal/middleware/grpc"
 	"Goworkspace/internal/service"
+	"Goworkspace/internal/service/auth"
 	"Goworkspace/internal/storage"
-	grpcServer "Goworkspace/internal/transport/grpc"
+	grpcTransport "Goworkspace/internal/transport/grpc"
 	transport "Goworkspace/internal/transport/http"
 	"context"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -16,14 +18,26 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 func main() {
+	logger := logging.NewLogger()
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		logger.Error("JWT_SECRET is not set")
+		return
+	}
+	jwt := auth.NewJWTValidation([]byte(secret))
+	authService := auth.NewAuthService(jwt)
+	public := map[string]struct{}{
+		"/proto.AuthService/Login": {},
+	}
 	st := storage.NewMemoryStorage()
-	service := service.NewService(st)
+	svc := service.NewService(st)
 
 	// --- HTTP Server ---
-	httpRouter := transport.NewRouter(service)
+	httpRouter := transport.NewRouter(svc)
 	httpsrv := &http.Server{
 		Addr:         ":8080",
 		Handler:      httpRouter,
@@ -33,26 +47,38 @@ func main() {
 	}
 
 	go func() {
-		log.Println("[INFO]: HTTP server started on :8080")
+		logger.Info("HTTP: server started on :8080")
 		if err := httpsrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("[ERROR]: HTTP listen error: %v", err)
+			logger.Error("HTTP: listen error", "error", err)
+			return
 		}
 	}()
 
 	// --- gRPC Server ---
-	grpcSrv := grpcServer.NewTaskServer(service)
-	grpcServer := grpc.NewServer()
+	grpcSrv := grpcTransport.NewTaskServer(svc)
+	grpcServer := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			grpcMiddleware.RequestIDInterceptor(),
+			grpcMiddleware.TimeoutInterceptor(60*time.Second),
+			grpcMiddleware.LoggingInterceptor(logger),
+			grpcMiddleware.RecoveryInterceptor(),
+			grpcMiddleware.NewAuthInterceptor(authService, public).Unary(),
+		))
+	reflection.Register(grpcServer)
+	authHandler := grpcTransport.NewAuthHandler(authService)
+	proto.RegisterAuthServiceServer(grpcServer, authHandler)
 	proto.RegisterTaskServiceServer(grpcServer, grpcSrv)
 
 	listener, err := net.Listen("tcp", ":50051")
 	if err != nil {
-		log.Fatalf("[ERROR]: gRPC listen error: %v", err)
+		logger.Error("gRPC: listen error", "error", err)
+		return
 	}
 
 	go func() {
-		log.Println("[INFO]: gRPC server started on :50051")
+		logger.Info("gRPC: server started on :50051")
 		if err := grpcServer.Serve(listener); err != nil {
-			log.Fatalf("[ERROR]: gRPC serve error: %v", err)
+			logger.Error("gRPC: serve error", "error", err)
 		}
 	}()
 
@@ -61,16 +87,16 @@ func main() {
 
 	<-ctx.Done()
 
-	log.Println("[INFO]: shutting down server...")
+	logger.Info("shutting down server...")
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	if err := httpsrv.Shutdown(shutdownCtx); err != nil {
-		log.Printf("[ERROR]: HTTP graceful shutdown failed: %v", err)
+		logger.Error("HTTP: graceful shutdown failed", "error", err)
 	}
 
 	grpcServer.GracefulStop()
 
-	log.Println("[INFO]: servers stopped")
+	logger.Info("servers stopped")
 }

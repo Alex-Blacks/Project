@@ -2,7 +2,7 @@ package grpc
 
 import (
 	"Goworkspace/internal/logging"
-	"Goworkspace/internal/service"
+	"Goworkspace/internal/service/auth"
 	"context"
 	"strings"
 
@@ -19,7 +19,16 @@ const userIDKey contextKey = "user_id"
 // interceptor хранит зависимость AuthService
 // через него происходит проверка токена
 type AuthInterceptor struct {
-	auth service.AuthService
+	auth   auth.AuthService
+	public map[string]struct{}
+}
+
+// конструктор Interceptor авторизации
+func NewAuthInterceptor(auth auth.AuthService, public map[string]struct{}) *AuthInterceptor {
+	return &AuthInterceptor{
+		auth:   auth,
+		public: public,
+	}
 }
 
 // Unary возвращает gRPC interceptor
@@ -31,6 +40,10 @@ func (i *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 		handler grpc.UnaryHandler,
 	) (resp interface{}, err error) {
 
+		if _, ok := i.public[info.FullMethod]; ok {
+			return handler(ctx, req)
+		}
+
 		// достаём logger из context
 		logger := logging.LoggerFromContext(ctx)
 
@@ -40,7 +53,7 @@ func (i *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			// если metadata нет — сразу ошибка
-			logger.Error("gRPC: missing metadata")
+			logger.Error("gRPC: missing metadata", "error", err)
 			return nil, status.Error(codes.Unauthenticated, "missing metadata")
 		}
 
@@ -49,16 +62,16 @@ func (i *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 
 		if len(values) == 0 {
 			// header отсутствует
-			logger.Error("gRPC: missing authorization header")
+			logger.Error("gRPC: missing authorization header", "error", err)
 			return nil, status.Error(codes.Unauthenticated, "missing authorization header")
 		}
 
 		// ожидаем формат: "Bearer <token>"
 		parts := strings.SplitN(values[0], " ", 2)
 
-		if len(parts) != 2 || parts[0] != "Bearer" {
+		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
 			// неправильный формат header
-			logger.Error("gRPC: invalid authorization header")
+			logger.Error("gRPC: invalid authorization header", "error", err)
 			return nil, status.Error(codes.Unauthenticated, "invalid authorization header")
 		}
 
@@ -69,7 +82,7 @@ func (i *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 		userID, err := i.auth.Validate(token)
 		if err != nil || userID == "" {
 			// токен невалидный или не удалось извлечь userID
-			logger.Error("gRPC: invalid token")
+			logger.Error("gRPC: invalid token", "error", err)
 			return nil, status.Error(codes.Unauthenticated, "invalid token")
 		}
 
