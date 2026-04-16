@@ -4,6 +4,8 @@ import (
 	"Goworkspace/internal/domain"
 	"context"
 	"sync"
+
+	"github.com/jackc/pgx/v5"
 )
 
 type MemoryStorage struct {
@@ -12,9 +14,22 @@ type MemoryStorage struct {
 	next int
 }
 
+type Storage struct {
+	mu   sync.RWMutex
+	db   *pgx.Conn
+	next int
+}
+
 func NewMemoryStorage() *MemoryStorage {
 	return &MemoryStorage{
 		data: make(map[int]domain.Item),
+		next: 1,
+	}
+}
+
+func NewStorage(conn *pgx.Conn) *Storage {
+	return &Storage{
+		db:   conn,
 		next: 1,
 	}
 }
